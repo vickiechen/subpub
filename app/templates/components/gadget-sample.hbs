@@ -1,0 +1,17 @@
+<div class="row timer-tab">
+	<div class="col-md-12">	
+		<div class="row history-path-row">
+			{{bread-crumb pathArrayObj=pathArrayObj gridViewClass=gridViewClass updatePath='updatePath'}}
+		</div>
+				
+		<div class="row mdb2-grid-view">	
+			<div class="col-md-12">			
+				{{#if gridViewObj}}
+					{{grid-view gridViewObj=gridViewObj}}	
+				{{else}}
+					<p>Grid View Not Found or Not Ready Yet!</p>
+				{{/if}}			
+			</div>
+		</div>		
+	</div>	
+</div>	

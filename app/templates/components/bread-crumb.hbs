@@ -1,0 +1,12 @@
+<div class="col-md-12" style="margin-left: -12px;">
+	{{#each pathArrayObj as |path|}}
+		<a href="" {{action "updatePath" path}}>{{path.label}}</a>
+	{{/each}}
+</div>			
+
+<!-- This is for getting title for a exported file -->
+<div id={{pathID}} style="display: none">
+	{{#each pathArrayObj as |path|}}
+		{{path.label}}
+	{{/each}}
+</div>
