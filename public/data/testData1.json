@@ -1,11 +1,16 @@
 {
-  "data": [
-	{"label": "Mon", "value": "123" },
-	{"label": "Tue", "value": "319" },
-	{"label": "Wed", "value": "160" },
-	{"label": "Thur", "value": "55" },
-	{"label": "Fri", "value": "261" },
-	{"label": "Sat", "value": "390" },
-	{"label": "Sun", "value": "1158" }
-  ]
+    "data": [
+		{
+			"recid": 0, 
+			"date":"Monday", 
+			"note": "Meeting at 2pm", 
+			"completed": 0
+		},
+		{
+			"recid": 1, 
+			"date":"Tuesday", 
+			"note": "Coffee break. Nice!", 
+			"completed": 1
+		}
+	]
 }

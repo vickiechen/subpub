@@ -5,15 +5,15 @@ const {computed,run} = Ember;
 export default Ember.Component.extend(gridCreatorMixin,{
 	ajaxService: Ember.inject.service(),
 	subpubService: Ember.inject.service(),
+	
 	recid: 0,
 	columnsService: '',
 	recordsService: '',
-	clickableFields:  [],  //handle clickable fields to trigger another grid view, value will be passed by its parents grid view object
+	clickableFields:  [],//handle clickable fields to trigger another grid view, value will be passed by its parents grid view object
 	columnGroups: [],
-	gridHeight: '409px', // by default
-	gridWidth: '98%', // by default
-
-	refreshTime: 3, //set refresh time to 3 minutes by defaut
+	gridHeight: '400px', // by default
+	gridWidth: '98%',    // by default
+	refreshTime: 3,      //set refresh time to 3 minutes by defaut
 	nextTick: null,
 	
 	gridViewStyle: Ember.computed('gridHeight','gridWidth', function() {
@@ -40,12 +40,12 @@ export default Ember.Component.extend(gridCreatorMixin,{
 		this.createGridView();
 		
 		// stop previour timer if any
-		this.stopRefreshTimer(); 
+		//this.stopRefreshTimer(); 
 		
 		//start refresh timer based on the refreshTime for this user
-		this.refreshTimerData();
+		//this.refreshTimerData();
 	},
-	
+
 	refreshTimerData:function(){
 		var self = this;
 		var refreshTime = self.get('refreshTime') * 1000 * 60;
@@ -92,7 +92,6 @@ export default Ember.Component.extend(gridCreatorMixin,{
 		}
 	},
 	
-
 	createGridView: function() {
 
 		// check if object exist, if no, return and do nothing
@@ -109,10 +108,6 @@ export default Ember.Component.extend(gridCreatorMixin,{
 			recordsService = this.get('recordsService'),
 			showTotal = this.get('showTotal'),
 			clickableFields = this.get('clickableFields'),
-			gadgetID = this.get('gadgetID'),
-			ticketSystem = this.get('ticketSystem'),
-
-			view = this.get('view'),
 			columnGroups = this.get('columnGroups');
 			
 		// get columns for this wu2i grid 
@@ -135,7 +130,7 @@ export default Ember.Component.extend(gridCreatorMixin,{
 					divGrid.columnGroups = columnGroups;
 				}
 				
-				self.getRecords(recordsService).then((records) => {
+				self.getRecords(recordsService).then((records) => { 
 					// show empty rows when there is no data returned from endpoint or has errorMsg
 					if(records === undefined){
 						records = [];
@@ -147,7 +142,7 @@ export default Ember.Component.extend(gridCreatorMixin,{
 					}
 
 					// load grid data to this grid
-					self.loadGridData(records,gridName,showTotal,clickableFields);
+					self.loadGridData(records.data,gridName,showTotal,clickableFields);
 
 					
 					// customize the wu2i onclick function for this grid  
@@ -225,9 +220,6 @@ export default Ember.Component.extend(gridCreatorMixin,{
 							//calling a function to alter Column CSS class TM2-150 "TaskMaster Hourly Detail View"
 							self.alterColumnColor(self.get('alterColumns'), self.get('alterColor'));
 							
-							//self.get('ajaxService').postData('setUserWidgetFields',extraParams).then((data) => {
-								//data response should has log on service .....
-							//});
 						}
 					};
 

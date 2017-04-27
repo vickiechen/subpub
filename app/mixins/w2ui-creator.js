@@ -69,10 +69,12 @@ export default Ember.Mixin.create({
 
             //Added clickableFields style class on clickableFields
             records.map(function(ele, index){
-                // add clickableFields style if it defined on w2ui mapping object
-                if( clickableFields.indexOf(key) !==-1 ){
-                    ele[key] = "<span class='clickableFields'>"  + ele[key] + "</span>";
-                }
+				for (var key in ele) { 
+					// add clickableFields style if it defined on w2ui mapping object
+					if( clickableFields.indexOf(key) !==-1 ){ 
+						ele[key] = "<span class='clickableFields'>"  + ele[key] + "</span>";
+					}
+				}
 			});
             w2ui[gridName].add(records);
         }
@@ -125,48 +127,38 @@ export default Ember.Mixin.create({
 				for (var key in ele) {
 					if (ele.hasOwnProperty(key)) {
 						let val = ele[key];
-
-					
-						//calculate the total on numberic column								
-						if( /^\d+$/.test( val ) ){	
-							let sum = 0;
-							if(returnData[key] !== undefined){
-								if ( /^-?\d*\.?\d*$/.test( returnData[key] ) ) {
+			
+						if(key === 'recid' ){
+							returnData[key] = 'TOTAL';  //only show Total label on the bottom of ID column
+						}else{
+							//calculate the total on numberic column								
+							if( /^\d+$/.test( val ) ){	
+								let sum = 0;
+								if(returnData[key] !== undefined){
+									if ( /^-?\d*\.?\d*$/.test( returnData[key] ) ) {
+										sum = parseFloat(returnData[key]) + parseFloat(val);
+									} else {
+										sum = parseInt(returnData[key]) + parseInt(val);
+									}
+								}else{
+									sum = parseInt(val);
+								}
+								returnData[key] = sum;					
+							} else if ( /^-?\d*\.?\d*$/.test( val ) ) {
+								let sum = 0;
+								if (returnData[key] != undefined) {
 									sum = parseFloat(returnData[key]) + parseFloat(val);
 								} else {
-									sum = parseInt(returnData[key]) + parseInt(val);
+									sum = parseFloat(val);
 								}
-							}else{
-								sum = parseInt(val);
-							}
-							returnData[key] = sum;					
-						} else if ( /^-?\d*\.?\d*$/.test( val ) ) {
-							let sum = 0;
-							if (returnData[key] != undefined) {
-								sum = parseFloat(returnData[key]) + parseFloat(val);
-							} else {
-								sum = parseFloat(val);
-							}
-							returnData[key] = sum;
-						} else{ 
-							if(key === 'task' ){
-								returnData[key] = 'TOTALS';  //only show Total label on the bottom of Task column
-							}else{
+								returnData[key] = sum;
+							} else{ 
 								returnData[key] = '';
 							}
-						}
-						
-						if (key === 'hour') {
-							returnData[key] = 'TOTAL'; //show total label on the bottom of Hour Column of "TM2-150 TaskMaster Hourly Detail View"
-						}
+						}						
 					}
 				}
 			});
-
-			//Divide total and add minutes back to Avg Handling Time
-			let total = returnData['avg_handling_time'];
-			total = parseFloat((total/data.length).toFixed(2));
-			returnData['avg_handling_time'] = total+ " minutes";
 
 			return [ returnData ];
 		}else{
@@ -202,7 +194,7 @@ export default Ember.Mixin.create({
 			}
 		
 			//set exported title by grid name and breadbrumb path if this is for TM2
-			let titleHeader = [ "Data Exported For "  + convertGridNameToTitle(gridName) + " " + breadcrumbPath];
+			let titleHeader = [ "Data Exported For "  + convertGridNameToTitle(gridName) ];
 			let UTCTime = [ "Generated at UTC Time:  " + (new Date()).toUTCString() ];
 
 			finalExcelArray.push(titleHeader);
@@ -252,7 +244,6 @@ export default Ember.Mixin.create({
 	    return this.get('ajaxService').getData(endpointName,extraParams).then((data) => { 
             let columns = data.columns;			
             columns.forEach(function(element, index, array) {	
-
 				columns[index].hideable = false;     //set hideable = 0 by default, so users can change hidden value to show/hide the column field
                 columns[index].searchable = true;    //set searchable = 1 by default, so users can use search on the column field
             });
@@ -263,37 +254,8 @@ export default Ember.Mixin.create({
     getRecords:function (endpointName) {
 
         let self = this;
-        let extraParams = (this.get('extraParams')?this.get('extraParams'):[]);
-		let extraRecordParams = self.get('gridViewObj')['extraRecordParams'] ? self.get('gridViewObj')['extraRecordParams'] : null;
-
-        if(extraRecordParams){
-            function strip(html)
-            {
-               var tmp = document.createElement("DIV");
-               tmp.innerHTML = html;
-               return tmp.textContent || tmp.innerText || "";
-            }
-
-            extraRecordParams = {taskName: strip(extraRecordParams.taskName), taskType: strip(extraRecordParams.taskType) };
-            extraParams = Object.assign(extraParams, extraRecordParams);
-        }
-
-        return this.get('requestService').getData(endpointName,extraParams).then((data) => {
-            if (data.total === 0) {
-                if(self.currentUser.customers === undefined){
-                    return  {
-                                recid: 0,
-                                cust_nm: 'No Customers Selected',
-                                TicketNum: ''
-                            };
-                } else {
-                    return  {
-                                recid: 0,
-                                cust_nm: 'No Data',
-                                TicketNum: ''
-                            };
-                }
-            }
+        let extraParams = (this.get('extraParams')?this.get('extraParams'):[]);		
+        return this.get('ajaxService').getData(endpointName,extraParams).then((data) => { 
             return data;
         });
     },

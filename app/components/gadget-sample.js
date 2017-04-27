@@ -2,9 +2,8 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
 	subpubService: Ember.inject.service(),  
-	linkToView: '',
+	linkToView: 'Test',
 	size: 'md', 
-	mode: 0 ,
 	gridViewClass: Ember.computed('size', 'linkToView',  function () { //must have this property for defining the grid view class and subscription Path
 		let linkToView = this.get('linkToView');
         if(this.get('size')==='full'){
@@ -16,15 +15,25 @@ export default Ember.Component.extend({
     }),
 	gridObjMapping: Ember.computed('widget_id', function() { 
 		return {
-			'DetailView' : {
-				gridName: 'DetailView',
+			'TestDetailView' : {
+				gridName: 'TestDetailView',
 				recid:'rowID', 
-				columnsService: 'getColumns', 
-				recordsService: 'getRecords',
+				columnsService: 'getTestColumns', 
+				recordsService: 'getTestData',
 				showTotal: 1,
 				gadgetID: 1,
-				ticketSystem: 'Test',
-				clickableFields:  ['name'],  //handle clickable fields to trigger another grid view
+				clickableFields:  ['number'],  //handle clickable fields to trigger another grid view
+				view: 'detail',
+				refreshTime: 3
+			},
+			'Test1DetailView' : {
+				gridName: 'Test1DetailView',
+				recid:'rowID', 
+				columnsService: 'getTestColumns1', 
+				recordsService: 'getTestData1',
+				showTotal: 1,
+				gadgetID: 1,
+				clickableFields:  [],  //handle clickable fields to trigger another grid view
 				view: 'detail',
 				refreshTime: 3
 			}
@@ -37,10 +46,6 @@ export default Ember.Component.extend({
 			
 			if( extraParams!==undefined && Object.keys(extraParams).length !== 0){
 				gridViewObj.extraParams = extraParams;
-			}else{  
-				gridViewObj.extraParams = { 
-					mode: this.get('mode')
-				};
 			}
 			this.set('gridViewObj', gridViewObj);	
 		}else{
@@ -48,25 +53,8 @@ export default Ember.Component.extend({
 		}		
 	},
 	handleGridView: function (topics, data, scope){
-		/** 
-			Example for data object
-			data = { 
-				stat: '5To7'
-				taskType: 'AGLTH001',
-				filter: 'Assigned',
-				linkToView:'Task'
-			}
-		**/
-		
+				
 		let self = this.scope;	
-
-		//add current mode to pass to api
-		data['mode'] = self.get('mode');	
-		
-		//switch to grid view based on the linkToView 
-		if(data.stat!==undefined) {
-			self.set('statOnDetailView', data.stat);
-		}
 		
 		//switch to grid view based on the linkToView 
 		if(data.linkToView!==undefined) {
@@ -79,7 +67,7 @@ export default Ember.Component.extend({
 		//create a new gridView object
 		self.setGridObj(self.get('gridViewClass'), data);
 	},
-
+/*
 	pathLayers:{
 		'overView':1,
 		'stat':2
@@ -150,28 +138,28 @@ export default Ember.Component.extend({
 				}
 			}	*/		
 			
-			self.propertyDidChange('pathArrayObj');		
+			/*self.propertyDidChange('pathArrayObj');		
 		
 			/*** update the subscripted grid view ***/	
-			let subscriptionGridName = topics.replace('Path', 'Grid');		
+			/*let subscriptionGridName = topics.replace('Path', 'Grid');		
 			self.get('subpubService').publish( subscriptionGridName, gridViewData, self);		
 		}	
 	},
-		
+	*/
 	init() {
 		this._super(...arguments);
-		
+
 		// Set grid view object based on the gridViewClass
 		this.setGridObj(this.get('gridViewClass'));	
 		
 		// Subscribers onClick events and its handler functions for all gridObjetMapping
 		let gridMapping = this.get('gridObjMapping');		
 		for (var key in gridMapping) {			
-			this.get('subpubService').subscribe('subscription'+key+'Path/update', this.handleGridViewNPath, this);
+			//this.get('subpubService').subscribe('subscription'+key+'Path/update', this.handleGridViewNPath, this);
 			this.get('subpubService').subscribe('subscription'+key+'Grid/update', this.handleGridView, this);
 		}		
 	},
-	
+	/*
 	actions: {
 		updatePath(path){  //tigger by clicking on breadcrumb
 			
@@ -206,6 +194,6 @@ export default Ember.Component.extend({
 			
 		}
 		
-	}	
+	}	*/
 
 });

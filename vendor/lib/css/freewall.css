@@ -1,0 +1,21 @@
+#freewall {
+	margin: 15px;
+	border: #000099 1px dotted;
+}
+
+#freewall .cell {
+	width:250px;
+	height: 250px;
+	background-color: #ffffff;
+	border: #000000 1px solid;
+}
+
+#freewall .cell .cover {
+	padding: 15px;
+}
+
+#freewall .cell .cover .handle {
+	border: 1px dotted orange;
+	padding: 4px;
+	cursor: move;
+}

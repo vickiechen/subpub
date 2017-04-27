@@ -3,9 +3,12 @@ const {Logger} = Ember;
 //import config from './../config/environment';
 
 export default Ember.Service.extend({
-
+	testUrl: 'http://vc333s.web.att.com:4401',
 	restEndPointMaps:{ /**** All API mappings ***/
-		'getTestData':{'endPointName':'getTestData','title':'Get Test Data From API','api':'/testData'},	
+		'getTestColumns':{'endPointName':'getTestColumns','title':'Get Test Columns From API','api':'/data/testColumns.json', 'file': true},
+		'getTestColumns1':{'endPointName':'getTestColumns1','title':'Get Test Columns 1 From API','api':'/data/testColumns1.json', 'file': true},			
+		'getTestData':{'endPointName':'getTestData','title':'Get Test Data From API','api':'/data/testData.json', 'file': true},
+		'getTestData1':{'endPointName':'getTestData1','title':'Get Test Data 1 From API','api':'/data/testData1.json', 'file': true},		
 	},
 
 	/***
@@ -59,7 +62,7 @@ export default Ember.Service.extend({
 			return false;
 		}
 		
-		let apiURL = 'http://localhost:4401' + endpointInfo.api;
+		let apiURL = this.get('testUrl') + endpointInfo.api;
 		let params = this.getRequiredParams(endPointName);
 		if(extraParams!==undefined) {
 			params = this.addExtraParams(extraParams, params);
@@ -67,24 +70,32 @@ export default Ember.Service.extend({
 
 		Ember.Logger.log('Ajax Get Call:', apiURL, params);
 		
-		let res = Ember.$.ajax({
-			url: apiURL,
-			data: params,
-			async: async,
-			beforeSend: function (xhr){},
-			type: 'GET',
-			dataType: 'json',
-			error: function(jqXHR, textStatus, errorThrown) {
-				Ember.Logger.error(textStatus, errorThrown, jqXHR);
-			}
-		})
-		res.then( function (data) {
-			if(data.errorMsg!==undefined && data.errorMsg!==''){
-				Ember.Logger.error(data.errorMsg);
-			}
-			data['endpointInfo'] = endpointInfo;
-		});
-		return res;
+		if(endpointInfo['file']===true){ //get data from a json file
+			let res = $.getJSON(apiURL);
+			res.then( function (data) {
+				data = eval("(" +data.responseText + ")");
+			});			
+			return res;
+		}else{ //get data from an api
+			let res = Ember.$.ajax({
+				url: apiURL,
+				data: params,
+				async: async,
+				beforeSend: function (xhr){},
+				type: 'GET',
+				dataType: 'json',
+				error: function(jqXHR, textStatus, errorThrown) {
+					Ember.Logger.error(textStatus, errorThrown, jqXHR);
+				}
+			})
+			res.then( function (data) {
+				if(data.errorMsg!==undefined && data.errorMsg!==''){
+					Ember.Logger.error(data.errorMsg);
+				}
+				data['endpointInfo'] = endpointInfo;
+			});
+			return res;
+		}		
 	},
 	
 	 postData: function(endPointName, extraParams=[], stringify=false) {

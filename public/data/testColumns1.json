@@ -1,0 +1,8 @@
+{
+    "columns":  [                
+        { "field": "recid", "caption": "ID", "size": "50px" },
+        { "field": "date",  "caption": "Date", "size": "30%" },
+        { "field": "note",  "caption": "Note", "size": "30%" },
+        { "field": "completed",  "caption": "Completed?", "size": "40%" }
+    ]
+}

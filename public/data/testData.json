@@ -1,11 +1,16 @@
 {
-  "data" :[
-	{"label": "Monday", "value": "12" },
-	{"label": "Tuesday", "value": "19" },
-	{"label": "Wednesday", "value": "10" },
-	{"label": "Thursday", "value": "5" },
-	{"label": "Friday", "value": "21" },
-	{"label": "Saturday", "value": "3" },
-	{"label": "Sunday", "value": "58" }
-  ]
+    "data": [
+		{
+			"recid": 0, 
+			"number":"123", 
+			"note": "Test Note one", 
+			"completed": 0
+		},
+		{
+			"recid": 1, 
+			"number":"456", 
+			"note": "Test Note two", 
+			"completed": 1
+		}
+	]
 }
