@@ -20,9 +20,7 @@ export default Ember.Mixin.create({
                         selectColumn: false		// indicates if select column is visible
                     },
 
-    buildGrid: function(gridName, columns, recid, defaultSortConfigArrayObjs=[], toolBar){
-        let self = this;
-
+    buildGrid: function(gridName, columns, recid, defaultSortConfigArrayObjs, toolBar){
         if (w2ui.hasOwnProperty(gridName)) {
             w2ui[gridName].destroy();
         }
@@ -31,7 +29,7 @@ export default Ember.Mixin.create({
             name: gridName,
             recid: recid,
             columns: columns,
-            sortData: defaultSortConfigArrayObjs,
+            sortData: (defaultSortConfigArrayObjs!==undefined?defaultSortConfigArrayObjs:[]),
             toolbar: toolBar,
             show: this.get('toolbarShow'),
             multiSelect: false,
@@ -54,7 +52,6 @@ export default Ember.Mixin.create({
     },
 
     loadGridData: function (records, gridName, showTotal, clickableFields=[]) {
-        let self = this;
         if(records !== null){
 			//clear up grid view records
 			w2ui[gridName].clear();
@@ -68,7 +65,7 @@ export default Ember.Mixin.create({
             }
 
             //Added clickableFields style class on clickableFields
-            records.map(function(ele, index){
+            records.map(function(ele){
 				for (var key in ele) { 
 					// add clickableFields style if it defined on w2ui mapping object
 					if( clickableFields.indexOf(key) !==-1 ){ 
@@ -87,8 +84,8 @@ export default Ember.Mixin.create({
 		var self = this;
 		let mytime = setInterval( function (){
 			time = self.addOneSec(time);
-			if( $(targetObj) &&  !self.parentView.showSummary ) {
-				$(targetObj).html(time);
+			if( Ember.$(targetObj) &&  !self.parentView.showSummary ) {
+				Ember.$(targetObj).html(time);
 			}else{
 				clearInterval(mytime);
 				Ember.Logger.log("Stop Clock Timer");
@@ -99,18 +96,18 @@ export default Ember.Mixin.create({
 	addOneSec(time){
 		let timeArr = time.split(':');
 		for(var i = timeArr.length-1; i >=0; i--){
-			if(i==2){
+			if(i===2){
 				timeArr[i] = parseInt(timeArr[i])+1; //add 1 sec
 			}
-			if(timeArr[i] == 60 ) {
+			if(timeArr[i] === 60 ) {
 				timeArr[i] = '00';
 				timeArr[i-1] = parseInt(timeArr[i-1])+1; //add 1 onto the next unit of time when it reachs 60
 			}
 			if(String(timeArr[i]).length<2){
 				timeArr[i] = '0'+ timeArr[i]; //add leading zero when it has less than 2 digits
 			}
-		};
-		return timeArr.join(':')
+		}
+		return timeArr.join(':');
 	},
 
 	computedTotals: function (data){
@@ -121,16 +118,23 @@ export default Ember.Mixin.create({
 								  style: "background-color: #EBEBEB, height: 35px !important,font-family: Omnes_ATT Medium !important, font-weight: 700 !important, font-size: 15px !important, max-height: 38px !important",
 								  class: "totals"
 							   };
-
+			
+			let computedColumns = [];
+			this.get('gridColumns').forEach(function (e){
+				if(e.getTotal){
+					computedColumns.push(e.field);
+				}
+			});
+			
 			//loop via data to get total of each columns
-			data.map(function(ele, index){
+			data.map(function(ele){ 
 				for (var key in ele) {
 					if (ele.hasOwnProperty(key)) {
 						let val = ele[key];
-			
+
 						if(key === 'recid' ){
 							returnData[key] = 'TOTAL';  //only show Total label on the bottom of ID column
-						}else{
+						}else if(computedColumns.indexOf(key) !== -1) {
 							//calculate the total on numberic column								
 							if( /^\d+$/.test( val ) ){	
 								let sum = 0;
@@ -146,7 +150,7 @@ export default Ember.Mixin.create({
 								returnData[key] = sum;					
 							} else if ( /^-?\d*\.?\d*$/.test( val ) ) {
 								let sum = 0;
-								if (returnData[key] != undefined) {
+								if (returnData[key] !== undefined) {
 									sum = parseFloat(returnData[key]) + parseFloat(val);
 								} else {
 									sum = parseFloat(val);
@@ -173,6 +177,13 @@ export default Ember.Mixin.create({
                 };
     },
 
+	convertGridNameToTitle: function(gridName) {
+		let title = gridName.replace(/_/g,' ');               //Replace _ to white space
+		return title.replace(/(^| )(\w)/g, function(x) {      //Capitalizing first letter of each word in string
+			return x.toUpperCase();
+		});
+	},
+			
     onClickToolbar: function (event) {
         let gridName = this.owner.name;
         if(event.target === 'w2ui-column-on-off'){
@@ -185,16 +196,8 @@ export default Ember.Mixin.create({
             let columns = w2ui[gridName].columns;
             let header = [], fieldsName=[], emptyRow = [], finalExcelArray = [];
 
-			//add title and UTC time on the header
-			function convertGridNameToTitle(gridName) {
-				let title = gridName.replace(/_/g,' ');               //Replace _ to white space
-				return title.replace(/(^| )(\w)/g, function(x) {      //Capitalizing first letter of each word in string
-					return x.toUpperCase();
-				});
-			}
-		
 			//set exported title by grid name and breadbrumb path if this is for TM2
-			let titleHeader = [ "Data Exported For "  + convertGridNameToTitle(gridName) ];
+			let titleHeader = [ "Data Exported For "  + this.convertGridNameToTitle(gridName) ];
 			let UTCTime = [ "Generated at UTC Time:  " + (new Date()).toUTCString() ];
 
 			finalExcelArray.push(titleHeader);
@@ -202,7 +205,7 @@ export default Ember.Mixin.create({
 			finalExcelArray.push(emptyRow);
 
 			//loop via each columns to get header and fields name
-            columns.forEach(function(element, index, array) {
+            columns.forEach(function(element) {
 				if(element.field !== 'rowID'){  //dont need row ID field
 					header.push(element.caption);
 					fieldsName.push(element.field);
@@ -214,9 +217,9 @@ export default Ember.Mixin.create({
             finalExcelArray.push(emptyRow);
 
 		    //loop via each data to get values on rows
-            data.forEach(function(element, index, array) {
+            data.forEach(function(element) {
                  let row = [];
-                 fieldsName.forEach(function(e, i) {
+                 fieldsName.forEach(function(e) {
                     let ele = element[e];
 					if(ele !== undefined && ele !== null){
 						ele = ele.toString();
@@ -243,7 +246,7 @@ export default Ember.Mixin.create({
 
 	    return this.get('ajaxService').getData(endpointName,extraParams).then((data) => { 
             let columns = data.columns;			
-            columns.forEach(function(element, index, array) {	
+            columns.forEach(function(element, index) {	
 				columns[index].hideable = false;     //set hideable = 0 by default, so users can change hidden value to show/hide the column field
                 columns[index].searchable = true;    //set searchable = 1 by default, so users can use search on the column field
             });
@@ -252,9 +255,7 @@ export default Ember.Mixin.create({
     },
 
     getRecords:function (endpointName) {
-
-        let self = this;
-        let extraParams = (this.get('extraParams')?this.get('extraParams'):[]);		
+		let extraParams = (this.get('extraParams')?this.get('extraParams'):[]);		
         return this.get('ajaxService').getData(endpointName,extraParams).then((data) => { 
             return data;
         });

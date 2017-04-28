@@ -1,6 +1,4 @@
 import Ember from 'ember';
-const {Logger} = Ember;
-//import config from './../config/environment';
 
 export default Ember.Service.extend({
 	testUrl: 'http://vc333s.web.att.com:4401',
@@ -25,8 +23,7 @@ export default Ember.Service.extend({
 	/**
 		Return the mandatories params used on each request acording to the endpoint configuration requirements
 	**/
-	getRequiredParams: function (endPointName) {
-		let endpointInfo  = this.getEndPointInfo(endPointName);
+	getRequiredParams: function () {
 		let	params = {
 			userID:  'Tester',
 		};
@@ -55,7 +52,6 @@ export default Ember.Service.extend({
 		Return the response of a GET resquest 
 	**/
 	getData: function(endPointName, extraParams=[], async=true) {
-		let self = this;
 		let endpointInfo = this.getEndPointInfo(endPointName);
 		if(endpointInfo===undefined || endpointInfo===''){
 			Ember.Logger.error('Unable to locate API URL:' + endPointName);
@@ -71,9 +67,9 @@ export default Ember.Service.extend({
 		Ember.Logger.log('Ajax Get Call:', apiURL, params);
 		
 		if(endpointInfo['file']===true){ //get data from a json file
-			let res = $.getJSON(apiURL);
+			let res = Ember.$.getJSON(apiURL, params);
 			res.then( function (data) {
-				data = eval("(" +data.responseText + ")");
+				data = eval("(" +data.responseText + ")");				 
 			});			
 			return res;
 		}else{ //get data from an api
@@ -81,14 +77,13 @@ export default Ember.Service.extend({
 				url: apiURL,
 				data: params,
 				async: async,
-				beforeSend: function (xhr){},
 				type: 'GET',
 				dataType: 'json',
 				error: function(jqXHR, textStatus, errorThrown) {
 					Ember.Logger.error(textStatus, errorThrown, jqXHR);
 				}
-			})
-			res.then( function (data) {
+			});
+			res.then( function(data) {
 				if(data.errorMsg!==undefined && data.errorMsg!==''){
 					Ember.Logger.error(data.errorMsg);
 				}
@@ -129,12 +124,12 @@ export default Ember.Service.extend({
             type: 'POST',
             dataType: 'json',
             error: function(jqXHR, textStatus, errorThrown) {
-                //Ember.Logger.error(textStatus, errorThrown,jqXHR);
+                Ember.Logger.error(textStatus, errorThrown,jqXHR);
             }
         });
         res.then(function (data) {
             if(data.errorMsg!==undefined && data.errorMsg!==''){
-                //Ember.Logger.error(data.errorMsg);
+                Ember.Logger.error(data.errorMsg);
             }
             //messages...
         });

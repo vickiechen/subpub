@@ -1,38 +1,30 @@
 import Ember from 'ember';
+import breadcrumbsMixin from '../mixins/breadcrumbs-mixin';
 
-export default Ember.Component.extend({
-	subpubService: Ember.inject.service(),  
+export default Ember.Component.extend(breadcrumbsMixin, {
+	subpubService: Ember.inject.service(),  	
 	linkToView: 'Test',
-	size: 'md', 
-	gridViewClass: Ember.computed('size', 'linkToView',  function () { //must have this property for defining the grid view class and subscription Path
-		let linkToView = this.get('linkToView');
-        if(this.get('size')==='full'){
-			return linkToView+'FullView';	
-		}
-		else{	
-			return linkToView+'DetailView';	
-		}
-    }),
+	gridViewClass: Ember.computed('linkToView',  function () { 
+		return this.get('linkToView')+'DetailView';	
+	}),
 	gridObjMapping: Ember.computed('widget_id', function() { 
 		return {
 			'TestDetailView' : {
 				gridName: 'TestDetailView',
-				recid:'rowID', 
+				recid:'recid', 
 				columnsService: 'getTestColumns', 
 				recordsService: 'getTestData',
 				showTotal: 1,
-				gadgetID: 1,
-				clickableFields:  ['number'],  //handle clickable fields to trigger another grid view
+				clickableFields:  ['order_number'],  //handle clickable fields to trigger another grid view
 				view: 'detail',
 				refreshTime: 3
 			},
 			'Test1DetailView' : {
 				gridName: 'Test1DetailView',
-				recid:'rowID', 
+				recid:'recid', 
 				columnsService: 'getTestColumns1', 
 				recordsService: 'getTestData1',
 				showTotal: 1,
-				gadgetID: 1,
 				clickableFields:  [],  //handle clickable fields to trigger another grid view
 				view: 'detail',
 				refreshTime: 3
@@ -67,85 +59,41 @@ export default Ember.Component.extend({
 		//create a new gridView object
 		self.setGridObj(self.get('gridViewClass'), data);
 	},
-/*
+
 	pathLayers:{
-		'overView':1,
-		'stat':2
+		'Test':1,
+		'Test1':2
 	},
 	
 	handleGridViewNPath: function (topics, data, scope){		
 		let self = this.scope;	
         let pathLayers = self.get('pathLayers');
 		
-		//keep save data into handleGridViewData attributes, so we can reuse it when its doing searching mode 1
-		self.set('handleGridViewData', data);
-				
-		//the params and linkToView needs to pass to api to get grid view data
-        let gridViewData = { 
-			stat: self.get('statOnDetailView'),
-			linkToView:''
-		};		
-		
 		if(data){			
 			self.propertyWillChange('pathArrayObj');	
 				
 			/*** update the subscripted path ***/			
-			/*if(data.column){ //published by clicking on column name/value inside of Grid View				
+			if(data.column){ //published by clicking on ID inside of Grid View				
 				
-				if(data.column ==='Task Type'){	
-					gridViewData['taskType'] = data.value;	
-					gridViewData['linkToView'] = 'Task';								
-					self.updatePath(data.value, self, pathLayers.taskType, gridViewData);	
-					
-				}else if(data.column ==='Task'){
-					if(data.rowId !==undefined ){
-						gridViewData['taskType'] = self.getValueFromGridView(data.rowId, 'task_type');	
-					}	
-					gridViewData['linkToView'] = 'Task';								
-					self.updatePath(data.value, self, pathLayers.taskType, gridViewData);	
+				switch(data.column){
+					case "Order Number":
+						data['linkToView']= 'Test1';
+						data['orderNumber']= data.value;
+						self.updatePath(data.value, self, pathLayers.Test1, data);	
+						break;
+					default:
+						self.updatePath(data.value, self, pathLayers.Test, data);	
+						break;					
 				}
-				else if (data.value && /^\d+$/.test( data.value ) ) {  //published by clicking on digits value inside of Grid View
-					
-					if(data.rowId !==undefined ){
-						gridViewData['taskType'] = self.getValueFromGridView(data.rowId, 'task_type');
-						self.updatePath(gridViewData['taskType']  , self, pathLayers.taskType , gridViewData);						
-					}			
-						
-					if (data.column ==='Ticket Number'){ //click on ticket numbers
-						gridViewData['ticketNumber'] = data.value;
-						gridViewData['linkToView'] = 'Ticket';
-						self.updatePath("Ticket "+ data.value , self, pathLayers.ticketNumber , gridViewData);							
-					} 
-					else {	//click on task numbers			
-						gridViewData['filter'] = data.column;	
-						gridViewData['linkToView'] = 'Task';								
-						self.updatePath(data.column + " Tasks", self, pathLayers.filter , gridViewData);							
-					}							
-				} 
-				else { //click on none numberic value						
-					let otherColumns = ['Origin','Assigned To','Team'];
-					if (otherColumns.indexOf(data.column)!==-1){ 
-						Ember.Logger.log('The layer for the column view is not ready yet:' + data.column);
-					}else{					
-						//update taskType on breadcrumb						
-						gridViewData['linkToView'] = 'Task';
-						if(data.rowId !==undefined ){ 	
-							let taskType = self.getValueFromGridView(data.rowId, 'task_type');	
-							gridViewData['taskType'] = taskType;	
-						}
-						self.updatePath(data.value, self, pathLayers.taskType, gridViewData);						
-					}					
-				}
-			}	*/		
+			}		
 			
-			/*self.propertyDidChange('pathArrayObj');		
+			self.propertyDidChange('pathArrayObj');		
 		
 			/*** update the subscripted grid view ***/	
-			/*let subscriptionGridName = topics.replace('Path', 'Grid');		
-			self.get('subpubService').publish( subscriptionGridName, gridViewData, self);		
+			let subscriptionGridName = topics.replace('Path', 'Grid');		
+			self.get('subpubService').publish( subscriptionGridName, data, self);		
 		}	
 	},
-	*/
 	init() {
 		this._super(...arguments);
 
@@ -155,20 +103,19 @@ export default Ember.Component.extend({
 		// Subscribers onClick events and its handler functions for all gridObjetMapping
 		let gridMapping = this.get('gridObjMapping');		
 		for (var key in gridMapping) {			
-			//this.get('subpubService').subscribe('subscription'+key+'Path/update', this.handleGridViewNPath, this);
+			this.get('subpubService').subscribe('subscription'+key+'Path/update', this.handleGridViewNPath, this);
 			this.get('subpubService').subscribe('subscription'+key+'Grid/update', this.handleGridView, this);
 		}		
 	},
-	/*
+	
 	actions: {
 		updatePath(path){  //tigger by clicking on breadcrumb
 			
 			let data = path.data;			
 			
-			//published by clicking on All Tasks on breadcrumb 
-			if(path.label === 'All Tasks'){ 
-				data['stat'] = 'overView'; 
-				data['linkToView'] = '';				
+			//published by clicking on OverView on breadcrumb 
+			if(path.label === 'OverView'){ 
+				data['linkToView'] = 'Test';				
 			}			
 		
 			//update breadcrumb
@@ -178,22 +125,14 @@ export default Ember.Component.extend({
 			this.get('subpubService').publish(  this.get('subscriptionNameGrid') + '/update' , data , this);
 						
 		},
-		updateGrid(searchData){  //tigger by clicking on  datetime-view's search button 
+		updateGrid(){  
 
 			let handleGridViewData = this.get('handleGridViewData');	
-			
-			if(searchData!==undefined && searchData.mode ===1){
-				this.set('searchData', searchData);
-			}else{
-				this.set('searchData', {});
-				this.set('mode', 0);
-			}
-			
+						
 			// update the grid view
 			this.get('subpubService').publish(  this.get('subscriptionNamePath') + '/update' , handleGridViewData , this);	
 			
-		}
-		
-	}	*/
+		}		
+	}	
 
 });

@@ -1,8 +1,10 @@
 {
     "columns":  [                
         { "field": "recid", "caption": "ID", "size": "50px" },
-        { "field": "number", "caption": "Number", "size": "30%" },
-        { "field": "note", "caption": "Note", "size": "30%" },
-        { "field": "completed", "caption": "Completed?", "size": "40%" }
+        { "field": "order_number", "caption": "Order Number", "size": "20%" },
+        { "field": "order_name", "caption": "Description", "size": "20%" },
+		{ "field": "order_total", "caption": "Total", "size": "20%", "getTotal": true},
+		{ "field": "order_date", "caption": "Order Date", "size": "10%" },
+        { "field": "completed", "caption": "Completed?", "size": "10%" }
     ]
 }

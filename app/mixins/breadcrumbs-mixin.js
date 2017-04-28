@@ -25,16 +25,8 @@ export default Ember.Mixin.create({
 		return value;		
 	},	
 	
-	pathArrayObj: Ember.computed('gridViewObj.tab', function() {
-		let tab = this.get('gridViewObj').tab;
-		if( tab!==undefined && (tab === 'Teams' || tab ==='Hourly') ){
-			return [ { label:"All Teams", data:{}, layer:1} ] ;
-		} else if( tab!==undefined && (tab === 'Tags') ){
-			return [ { label:"All Tags", data:{}, layer:1} ] ;
-		} else {
-			return [ { label:"All Tasks", data:{}, layer:1} ] ;
-		}				
-	}),	
+	pathArrayObj: [ { label:"OverView", data:{}, layer:1} ], 
+	
 	updatePath: function (path, scope, layer, data={}){
 		
 		let pathArrayObj = scope.get('pathArrayObj'), flag = false;
@@ -46,13 +38,15 @@ export default Ember.Mixin.create({
 			}
 		});
 		
-		if(!flag) pathArrayObj.pushObject({ label:"/ "+path, data:data, layer:layer});
-
+		if(!flag){
+			pathArrayObj.pushObject({ label:"/ "+path, data:data, layer:layer});
+		}
+		
 		pathArrayObj.map((path, index)=>{
 			if(path.layer > layer){
 				pathArrayObj.splice(index, 1);
 			}
-		})
+		});
 
 		function compare(a,b) {
 			if(a.layer < b.layer){
@@ -72,7 +66,7 @@ export default Ember.Mixin.create({
 		}		
 	},
 
-	updateBreadcrumbs(path, pathName){ 
+	updateBreadcrumbs(path){ 
 		let pathArrayObj = [];
 		this.get('pathArrayObj').map((obj)=>{
 			if( obj.layer < path.layer || obj.layer === path.layer ){

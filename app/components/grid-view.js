@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import gridCreatorMixin from '../mixins/w2ui-creator';
-const {computed,run} = Ember;
+const {run} = Ember;
 
 export default Ember.Component.extend(gridCreatorMixin,{
 	ajaxService: Ember.inject.service(),
@@ -9,7 +9,7 @@ export default Ember.Component.extend(gridCreatorMixin,{
 	recid: 0,
 	columnsService: '',
 	recordsService: '',
-	clickableFields:  [],//handle clickable fields to trigger another grid view, value will be passed by its parents grid view object
+	clickableFields:  [], //handle clickable fields to trigger another grid view, value will be passed by its parents grid view object
 	columnGroups: [],
 	gridHeight: '400px', // by default
 	gridWidth: '98%',    // by default
@@ -40,58 +40,24 @@ export default Ember.Component.extend(gridCreatorMixin,{
 		this.createGridView();
 		
 		// stop previour timer if any
-		//this.stopRefreshTimer(); 
+		this.stopRefreshTimer(); 
 		
 		//start refresh timer based on the refreshTime for this user
-		//this.refreshTimerData();
+		this.refreshTimerData();
 	},
 
 	refreshTimerData:function(){
 		var self = this;
-		var refreshTime = self.get('refreshTime') * 1000 * 60;
+		var refreshTime = self.get('refreshTime') * 100 * 60;
 		self.set('nextTick',run.later(function(){ 
 		  	if(!(self.get('isDestroyed') || self.get('isDestroying'))  ){		
-				//Ember.Logger.log('Refresh timer for ', self.get('gridName'), 'Get Grid View Data');
+				Ember.Logger.log('Refresh timer for ', self.get('gridName'), 'Get Grid View Data');
 				self.createGridView();
 				self.refreshTimerData(); // repeat
 			}
         }, parseInt(refreshTime) ));
-	},
-	
-	alterColumnGroupColor: function(alterColumnGroups, alterColor) {
-		let gridName = this.get('gridName');
-		if(alterColumnGroups!==undefined && alterColumnGroups.length >0){
-			for (let i = 0; i < alterColumnGroups.length; i++ ){
-				let colGrps = Ember.$('#'+ gridName).find('.w2ui-col-group');
-				colGrps.each(function (index, element){
-					let groupName = Ember.$(this).text().trim();
-					if(groupName === alterColumnGroups[i] ){
-						Ember.$(this).parent('.w2ui-head').addClass("customColumnStyle"+alterColor);
-					}
-					if((colGrps.length - 1) === index) {
-						Ember.$(this).parent('.w2ui-head').addClass("customColumnStyle" + "EAEAEA");
-					}
-				});
-			}
-		}
-	},
-	
-	alterColumnColor: function(alterColumns, alterColor) {
-		let gridName = this.get('gridName');
-		if(alterColumns!==undefined && alterColumns.length >0){
-			for (let i = 0; i < alterColumns.length; i++ ){
-				let colGrps = Ember.$('#'+ gridName).find('.w2ui-col-header');
-				colGrps.each(function (index, element){
-					let groupName = Ember.$(this).text().trim();
-					if(groupName === alterColumns[i] ){
-						Ember.$(this).parent('.w2ui-head').addClass("customColumnStyle"+alterColor);
-					}
-					Ember.$('.w2ui-head-last').addClass("customColumnStyle" + "EAEAEA");
-				});
-			}
-		}
-	},
-	
+	},	
+
 	createGridView: function() {
 
 		// check if object exist, if no, return and do nothing
@@ -113,6 +79,8 @@ export default Ember.Component.extend(gridCreatorMixin,{
 		// get columns for this wu2i grid 
 		this.getColumns(columnsService).then((columns) => { 
 
+			self.set('gridColumns', columns);
+			
 			//this update in the column configuration is just with test purposes, can be deleted
 			columns.map((column)=>{
 				column.hideable = true;
@@ -140,13 +108,21 @@ export default Ember.Component.extend(gridCreatorMixin,{
 							Ember.Logger.log('No apiData returned from ' + gridName);
 						}
 					}
+				
+					/***since we can not filter out data by passed params in json file, so I have to manully add this condition on json return for testData2 layer. This code should be removed if we have api services ***/
+					if( records.data ){
+						records = records.data;
+					}else{
+						let params = (self.get('extraParams')?self.get('extraParams'):[]);
+						records = records[params.value];
+					}	
+					/*** END Testing ***/					
 
 					// load grid data to this grid
-					self.loadGridData(records.data,gridName,showTotal,clickableFields);
+					self.loadGridData(records, gridName,showTotal,clickableFields);
 
-					
 					// customize the wu2i onclick function for this grid  
-					divGrid.__proto__.onClick = (event)=>{ 
+					Object.getPrototypeOf(divGrid).onClick = (event)=>{ 
 						//will trigger another gridview by this event, probably will call action setGridObj(gridName) on its parent (tab component) to load another grid view, will implement this after we got other gridview mapping ready!
 						let cellColumnNumber = event.column,
 							cellColumnName = (divGrid.columns[cellColumnNumber] && divGrid.columns[cellColumnNumber].caption) || false,
@@ -175,97 +151,52 @@ export default Ember.Component.extend(gridCreatorMixin,{
 
 
 					// customize the wu2i onExpand function for this grid
-					divGrid.__proto__.onExpand = (event)=>{
-
+					Object.getPrototypeOf(divGrid).onExpand = (event)=>{
 						// show text data in 3 columns, to be cutomized later if needed.
 						let record = divGrid.get(event.recid),
 							details = record.Details,
 							newHTMLArray = [],
 							height = '';
 
-							$.each(details, function(i,e){
+							Ember.$.each(details, function(i,e){
 							  newHTMLArray.push ('<strong>'+ e.caption + ': </strong><span>'+ e.value +'</span><br>');
 							});
 
 							height = Math.round(((details.length/3)*16)+40);
-							var newHTMLStr = '<div class="mdb2-child-row" style="height: '+ height +'px">'+ newHTMLArray.join("") +'</div>';
-							$('#'+event.box_id).html(newHTMLStr);
+							var newHTMLStr = '<div class="grid-child-row" style="height: '+ height +'px">'+ newHTMLArray.join("") +'</div>';
+							Ember.$('#'+event.box_id).html(newHTMLStr);
 					};
 
-
 					// customize the wu2i onColumnDragStart function for this grid
-					divGrid.__proto__.onColumnDragStart = (event)=>{
-						$('.cell').addClass('noselect'); // disable selecting other element when dragging a column
+					Object.getPrototypeOf(divGrid).onColumnDragStart = (event)=>{
+						Ember.$('.cell').addClass('noselect'); // disable selecting other element when dragging a column
+						Ember.Logger.log('Action Trigger on onColumnDragStart !', event);		
 					};
 
 					// customize the wu2i onColumnDragEnd function for this grid
-					divGrid.__proto__.onColumnDragEnd = (event)=>{
+					Object.getPrototypeOf(divGrid).onColumnDragEnd = (event)=>{
 						event.onComplete = function () {
-							$('.cell').removeClass('noselect');
+							Ember.$('.cell').removeClass('noselect');
 
 							let newColumns = divGrid.columns;
 							for(var i=0; i<newColumns.length; i++){
 								newColumns[i].order = i;
-							}
-							var newColumnsJSON = JSON.stringify(newColumns);
-
-							let extraParams = {
-								newColumns: newColumnsJSON,
-								view: (newColumns[0].screen_view!==undefined?newColumns[0].screen_view:'full')
-							};
-							
-							//calling a function to alter ColumnGroup CSS class TM2-150 "TaskMaster Hourly Detail View"
-							self.alterColumnGroupColor(self.get('alterColumnGroups'), self.get('alterColor'));
-							
-							//calling a function to alter Column CSS class TM2-150 "TaskMaster Hourly Detail View"
-							self.alterColumnColor(self.get('alterColumns'), self.get('alterColor'));
-							
-						}
+							}							
+							Ember.Logger.log('newColumns can be stored to DB for ordering!');							
+						};
 					};
 
 					// customize the wu2i onColumnOnOff function for this grid??
-					divGrid.__proto__.onColumnOnOff = (event)=>{
+					Object.getPrototypeOf(divGrid).onColumnOnOff = (event)=>{
 						event.onComplete = function () {
-							var fieldID = '';
-							var order = '';
-							var action = '';
-							var column = w2ui[gridName].getColumn(event.field);
-							var columns = divGrid.columns;
-
-							for(var i=0; i<columns.length; i++){
-								if(columns[i].field === column.field){
-									fieldID = columns[i]['widget_field_id'];
-									order = columns[i]['order'];
-									view = (columns[i]['screen_view']!==undefined?columns[i]['screen_view']:'full');
-								}
-							}
-
-							if(column.hidden){
-								action = 1; //hidden = true
-							} else {
-								action = 0; //hidden = false
-							}
-							
-							//calling a function to alter ColumnGroup CSS class TM2-150 "TaskMaster Hourly Detail View"
-							self.alterColumnGroupColor(self.get('alterColumnGroups'), self.get('alterColor'));
-							
-							//calling a function to alter Column CSS class TM2-150 "TaskMaster Hourly Detail View"
-							self.alterColumnColor(self.get('alterColumns'), self.get('alterColor'));
-							
+							Ember.Logger.log('Action Trigger on onColumnOnOff !');		
 						};
 					};
 					
-					//calling a function to alter ColumnGroup CSS class TM2-150 "TaskMaster Hourly Detail View"
-					this.alterColumnGroupColor(this.get('alterColumnGroups'), this.get('alterColor'));
-					
-					//calling a function to alter Column CSS class TM2-150 "TaskMaster Hourly Detail View"
-					this.alterColumnColor(this.get('alterColumns'), this.get('alterColor'));
-					
-					//Start Clock Timer when grid view loaded, need to add class name that needs update clock feature into updateClockFields array below 		
 					let updateClockFields = [];
 					for (let i in updateClockFields){
-						$('.'+ updateClockFields[i]).each(function (index, element){
-							let time = $(this).html();
+						Ember.$('.'+ updateClockFields[i]).each(function (){
+							let time = Ember.$(this).html();
 							self.updateClock(time, this);
 						});
 					}

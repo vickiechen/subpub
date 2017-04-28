@@ -43,12 +43,14 @@ export default Ember.Service.extend({
         if(topics[topic].length){
             var funcRegistered = false;
             topics[topic].map((handlerObj)=>{
-                if(handlerObj.func == func){
+                if(handlerObj.func === func){
                     funcRegistered = true;
                     handlerObj.scope = scope;
                 }
             });
-            if(funcRegistered) return false;
+            if(funcRegistered){
+				return false;
+			}
         }
 
         let subUid = this.get('subUid');
