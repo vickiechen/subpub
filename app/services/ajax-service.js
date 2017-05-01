@@ -1,7 +1,7 @@
 import Ember from 'ember';
 
 export default Ember.Service.extend({
-	testUrl: 'http://vc333s.web.att.com:4401',
+	testUrl: 'https://vickiechen.github.io/subpub',
 	restEndPointMaps:{ /**** All API mappings ***/
 		'getTestColumns':{'endPointName':'getTestColumns','title':'Get Test Columns From API','api':'/data/testColumns.json', 'file': true},
 		'getTestColumns1':{'endPointName':'getTestColumns1','title':'Get Test Columns 1 From API','api':'/data/testColumns1.json', 'file': true},			
