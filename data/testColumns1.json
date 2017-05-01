@@ -1,0 +1,9 @@
+{
+    "columns":  [                
+        { "field": "recid", "caption": "ID", "size": "50px" },
+        { "field": "item_number",  "caption": "Item Number", "size": "20%" },
+        { "field": "item_name",  "caption": "Item Name", "size": "20%" },
+		{ "field": "qty",  "caption": "Qty", "size": "20%", "getTotal": true},
+        { "field": "unit_price",  "caption": "Item Price", "size": "20%" }
+    ]
+}
