@@ -1,0 +1,65 @@
+testData:[
+      {
+            id:1,
+            companyID: 1001,
+            companyName: 'Company Name Test 10001',
+            companyAddress:  '1001 Test Street',
+            companyjNumber: 90001001,
+            companyTaxID: 80001001,
+            revenue: 1324354657,
+            international: false,
+            accountType: 'DDA'
+          },
+            {
+            id:2,
+            companyID: 1002,
+            companyName: 'Company Name Test 10002',
+            companyAddress:  '1002 Test Street',
+            companyjNumber: 90001002,
+            companyTaxID: 80001002,
+            revenue: 13435676454,
+            international: false,
+            accountType: 'ACH'
+          },  {
+            id:3,
+            companyID: 1003,
+            companyName: 'Company Name Test 10003',
+            companyAddress:  '1003 Test Street',
+            companyjNumber: 90001003,
+            companyTaxID: 80001003,
+            revenue: 13889907,
+            international: true,
+            accountType: 'DDA'
+            
+          },  {
+            id:4,
+            companyID: 1004,
+            companyName: 'Company Name Test 10004',
+            companyAddress:  '1004 Test Street',
+            companyjNumber: 90001004,
+            companyTaxID: 80001005,
+            revenue: 1000000,
+            international: false,
+            accountType: 'SAVINGS'
+          },  {
+            id:5,
+            companyID: 1005,
+            companyName: 'Company Name Test 10005',
+            companyAddress:  '1005 Test Street',
+            companyjNumber: 90001005,
+            companyTaxID: 80001005,
+            revenue: 45464000,
+            international: false,
+            accountType: 'DDA'
+          },  {
+            id:6,
+            companyID: 1006,
+            companyName: 'Company Name Test 10006',
+            companyAddress:  '1006 Test Street',
+            companyjNumber: 90001006,
+            companyTaxID: 80001006,
+            revenue:200000000,
+            international: true,
+            accountType: 'CTRLDISB'
+          }
+    ]
